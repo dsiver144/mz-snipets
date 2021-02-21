@@ -3,13 +3,13 @@
 // - Last updated   : 21/2/2021
 //================================================================
 /*:
- * @plugindesc v1.1 A helper plugin for DSI plugins.
+ * @plugindesc v1.2 A helper plugin for DSI plugins.
  * @author dsiver144
 */
 
 // Parse SE
 var Imported = Imported || {};
-Imported.DSI_Core = 1.1;
+Imported.DSI_Core = 1.2;
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
     const http = require('https');
@@ -31,7 +31,7 @@ PluginManager.checkForNewVersion = function() {
     const pluginPath = path.join(base, "js/plugins/") + "DSI-Core.js";
     download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/CoreVersion.txt', versionPath, ()=>{
         const version = fs.readFileSync(versionPath, {encoding: "utf-8"});
-        if (Number(version) !== Imported.DSI_Core) {
+        if (Number(version) > Imported.DSI_Core) {
             download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/DSI-Core.js', pluginPath, ()=>{
                 console.warn("UPDATED: DSI-Core to version: " + version);
             });
