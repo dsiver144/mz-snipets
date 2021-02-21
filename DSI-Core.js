@@ -61,9 +61,6 @@ PluginManager.processParameters = function(paramObject) {
                     break;
                 case 'arr_struct':
                     value = JSON.parse(value);
-                    for (object of value) {
-                        object = 
-                    }
                     for (let i = 0; i < value.length; i++) {
                         value[i] = JSON.parse(value[i]);
                         value[i] = PluginManager.processParameters(value[i]);
