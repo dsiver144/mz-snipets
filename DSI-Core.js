@@ -3,13 +3,13 @@
 // - Last updated   : 21/2/2021
 //================================================================
 /*:
- * @plugindesc v1.2 A helper plugin for DSI plugins.
+ * @plugindesc v1.3 A helper plugin for DSI plugins.
  * @author dsiver144
 */
 
 // Parse SE
 var Imported = Imported || {};
-Imported.DSI_Core = 1.2;
+Imported.DSI_Core = 1.3;
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
     const http = require('https');
@@ -59,6 +59,15 @@ PluginManager.processParameters = function(paramObject) {
                     value = JSON.parse(value);
                     value = PluginManager.processParameters(value);
                     break;
+                case 'arr_struct':
+                    value = JSON.parse(value);
+                    for (object of value) {
+                        object = 
+                    }
+                    for (let i = 0; i < value.length; i++) {
+                        value[i] = JSON.parse(value[i]);
+                        value[i] = PluginManager.processParameters(value[i]);
+                    }
                 case 'num': case 'number':
                     value = Number(value);
                     break;
