@@ -1,6 +1,6 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 19/2/2021
+// - Last updated   : 21/2/2021
 //================================================================
 /*:
  * @plugindesc v1.0 A helper plugin for DSI plugins.
@@ -10,36 +10,42 @@
 // Parse SE
 var Imported = Imported || {};
 Imported.DSI_Core = 1.0;
-
+// Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
-    var http = require('https');
-    var fs = require('fs');
-
-    var download = function(url, dest, cb) {
+    const http = require('https');
+    const fs = require('fs');
+    const download = function(url, dest, cb) {
         var file = fs.createWriteStream(dest);
         http.get(url, function(response) {
             response.pipe(file);
             file.on('finish', function() {
-                file.close(cb);
+                if (cb)
+                    cb.call(this, file);
+                file.close();
             });
         });
-    }
-    download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/MZSnipets.js?token=ADXWAUGZ3PL5SHZO3F4YIWDAGJ2FG', '/js', (file)=>{
-        console.log(file);
+    };
+    const path = require("path");
+    const base = path.dirname(process.mainModule.filename);
+    const versionPath = path.join(base, "js/") + "dsi_core.version";
+    const pluginPath = path.join(base, "js/plugins/") + "DSI-Core.js";
+    download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/CoreVersion.txt', versionPath, ()=>{
+        const version = fs.readFileSync(versionPath, {encoding: "utf-8"});
+        if (Number(version) !== Imported.DSI_Core) {
+            download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/DSI-Core.js', pluginPath, ()=>{
+                console.warn("UPDATED: DSI-Core to version: " + version);
+            });
+        } else {
+            console.warn("DSI-Core is up to date! " + version);
+        }
     })
 };
-
-PluginManager.checkForNewVersion();
-
-
-PluginManager.parseSE = function(param) {
-    param = JSON.parse(param);
-    param.volume = parseInt(param.volume);
-    param.pitch = parseInt(param.pitch);
-    param.pan = parseInt(param.pan);
-    return param;
-};
-
+try {
+    PluginManager.checkForNewVersion();
+} catch(e) {
+    console.warn("Can't not update DSI-Core!");
+}
+// Parse Plugin Parameters
 PluginManager.processParameters = function(paramObject) {
     paramObject = JsonEx.makeDeepCopy(paramObject);
     for (k in paramObject) {
@@ -73,6 +79,16 @@ PluginManager.processParameters = function(paramObject) {
     }
     return paramObject;
 };
+
+// Parse SE
+PluginManager.parseSE = function(param) {
+    param = JSON.parse(param);
+    param.volume = parseInt(param.volume);
+    param.pitch = parseInt(param.pitch);
+    param.pan = parseInt(param.pan);
+    return param;
+};
+
 
 // Return An Random Item From Array
 Array.prototype.randomizeItem = function() {
