@@ -3,13 +3,13 @@
 // - Last updated   : 21/2/2021
 //================================================================
 /*:
- * @plugindesc v1.3 A helper plugin for DSI plugins.
+ * @plugindesc v1.4 A helper plugin for DSI plugins.
  * @author dsiver144
 */
 
 // Parse SE
 var Imported = Imported || {};
-Imported.DSI_Core = 1.3;
+Imported.DSI_Core = 1.4;
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
     const http = require('https');
@@ -65,11 +65,15 @@ PluginManager.processParameters = function(paramObject) {
                         value[i] = JSON.parse(value[i]);
                         value[i] = PluginManager.processParameters(value[i]);
                     }
+                    break;
                 case 'num': case 'number':
                     value = Number(value);
                     break;
                 case 'arr': case 'note': case 'array':
                     value = JSON.parse(value);
+                    break;
+                case 'arr_num':
+                    value = JSON.parse(value).map(n => Number(n));
                     break;
                 case 'bool':
                     value = value === 'true';
@@ -77,7 +81,7 @@ PluginManager.processParameters = function(paramObject) {
                 case 'vec': case 'vector':
                     value = value.split(",").map(n => Number(n));
                     break;
-                case 'str_vec':
+                case 'vec_str':
                     value = value.split(",");
                     break;
             }
@@ -139,6 +143,15 @@ Easing.easeInOutBack = function(t, b, c, d) {
     if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
     return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
 }
+
+Bitmap.prototype.drawIcon = function(iconIndex, x, y) {
+    const bitmap = ImageManager.loadSystem("IconSet");
+    const pw = ImageManager.iconWidth;
+    const ph = ImageManager.iconHeight;
+    const sx = (iconIndex % 16) * pw;
+    const sy = Math.floor(iconIndex / 16) * ph;
+    this.blt(bitmap, sx, sy, pw, ph, x, y);
+};
 
 Easing.classes = [Sprite, Window];
 
