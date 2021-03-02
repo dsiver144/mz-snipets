@@ -40,7 +40,7 @@ PluginManager.checkForNewVersion = function() {
     const pluginPath = path.join(base, "js/plugins/") + "DSI-Core.js";
     download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/CoreVersion.txt', versionPath, ()=>{
         const version = fs.readFileSync(versionPath, {encoding: "utf-8"});
-        if (Number(version) > Imported.DSI_Core) {
+        if (Number(version) > Imported.DSI_Core.version) {
             download('https://raw.githubusercontent.com/dsiver144/mz-snipets/main/DSI-Core.js', pluginPath, ()=>{
                 console.warn("UPDATED: DSI-Core to version: " + version);
             });
