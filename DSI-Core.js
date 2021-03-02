@@ -1,15 +1,24 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 22/2/2021
+// - Last updated   : 02/3/2021
 //================================================================
 /*:
- * @plugindesc v1.4 A helper plugin for DSI plugins.
+ * @plugindesc v1.5 A helper plugin for DSI plugins.
  * @author dsiver144
+ * 
+ * @param showDevTool:bool
+ * @text Show Dev Tool On Startup
+ * @default true
+ * @desc true : Show | false: Hide
+ * 
 */
 
 // Parse SE
 var Imported = Imported || {};
-Imported.DSI_Core = 1.4;
+
+Imported.DSI_Core = {};
+Imported.DSI_Core.version = 1.5;
+
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
     const http = require('https');
@@ -86,12 +95,21 @@ PluginManager.processParameters = function(paramObject) {
                     break;
             }
             paramObject[paramName] = value;
-            console.log(RegExp.$1, RegExp.$2);
-            
         }
     }
     return paramObject;
 };
+
+Imported.DSI_Core.params = PluginManager.processParameters(PluginManager.parameters('DSI-Core'));
+
+// Assign Interpreter instance to commands args
+if (Utils.RPGMAKER_NAME === "MZ") {
+    Game_Interpreter.prototype.command357 = function(params) {
+        params[3].interpreter = this;
+        PluginManager.callCommand(this, params[0], params[1], params[3]);
+        return true;
+    };
+}
 
 // Parse SE
 PluginManager.parseSE = function(param) {
@@ -101,6 +119,14 @@ PluginManager.parseSE = function(param) {
     param.pan = parseInt(param.pan);
     return param;
 };
+
+// Show Dev Tools
+Imported.DSI_Core.params.showDevTool = Imported.DSI_Core.params.showDevTool || true;
+if (Imported.DSI_Core.params.showDevTool) {
+    if (Utils.isNwjs() && Utils.isOptionValid("test")) {
+        nw.Window.get().showDevTools();
+    }
+}
 
 
 // Return An Random Item From Array
