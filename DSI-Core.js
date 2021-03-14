@@ -1,23 +1,36 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 02/3/2021
+// - Last updated   : 14/03/2021
 //================================================================
 /*:
- * @plugindesc v1.5 A helper plugin for DSI plugins.
+ * @plugindesc v1.6 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
  * @text Show Dev Tool On Startup
  * @default true
+ * @type boolean
  * @desc true : Show | false: Hide
  * 
+ * @param autoUpdate:bool
+ * @text Auto Update
+ * @type boolean
+ * @default true
+ * 
 */
-
+/*~struct~PositionObject:
+ * @param x:num
+ * @desc X position
+ * 
+ * @param y:num
+ * @desc Y Position
+ * ex: {"x:num":"228","y:num":"661"}
+ */
 // Parse SE
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.5;
+Imported.DSI_Core.version = 1.6;
 
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
@@ -49,11 +62,6 @@ PluginManager.checkForNewVersion = function() {
         }
     })
 };
-try {
-    PluginManager.checkForNewVersion();
-} catch(e) {
-    console.warn("Can't not update DSI-Core!");
-}
 // Parse Plugin Parameters
 PluginManager.processParameters = function(paramObject) {
     paramObject = JsonEx.makeDeepCopy(paramObject);
@@ -101,6 +109,14 @@ PluginManager.processParameters = function(paramObject) {
 };
 
 Imported.DSI_Core.params = PluginManager.processParameters(PluginManager.parameters('DSI-Core'));
+Imported.DSI_Core.params.autoUpdate = Imported.DSI_Core.params.autoUpdate || true;
+if (Imported.DSI_Core.params.autoUpdate && Utils.isOptionValid("test")) {
+    try {
+        PluginManager.checkForNewVersion();
+    } catch(e) {
+        console.warn("Can't not update DSI-Core!");
+    }
+}
 
 // Assign Interpreter instance to commands args
 if (Utils.RPGMAKER_NAME === "MZ") {
