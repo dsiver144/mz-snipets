@@ -30,7 +30,7 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.6;
+Imported.DSI_Core.version = 1.6; // Version.
 
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
