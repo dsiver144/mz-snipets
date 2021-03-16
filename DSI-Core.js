@@ -1,9 +1,9 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 14/03/2021
+// - Last updated   : 16/03/2021
 //================================================================
 /*:
- * @plugindesc v1.6 A helper plugin for DSI plugins.
+ * @plugindesc v1.7 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
@@ -30,7 +30,7 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.6; // Version.
+Imported.DSI_Core.version = 1.7;
 
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
@@ -67,7 +67,7 @@ PluginManager.processParameters = function(paramObject) {
     paramObject = JsonEx.makeDeepCopy(paramObject);
     for (k in paramObject) {
         if (k.match(/(.+):(\w+)/i)) {
-            value = paramObject[k];
+            var value = paramObject[k];
             delete paramObject[k];
             const paramName = RegExp.$1;
             const paramType = RegExp.$2;
@@ -77,10 +77,12 @@ PluginManager.processParameters = function(paramObject) {
                     value = PluginManager.processParameters(value);
                     break;
                 case 'arr_struct':
-                    value = JSON.parse(value);
-                    for (let i = 0; i < value.length; i++) {
-                        value[i] = JSON.parse(value[i]);
-                        value[i] = PluginManager.processParameters(value[i]);
+                    var array = JSON.parse(value);
+                    value = [];
+                    for (let i = 0; i < array.length; i++) {
+                        var rawStruct = JSON.parse(array[i]);
+                        rawStruct = PluginManager.processParameters(rawStruct);
+                        value.push(rawStruct)
                     }
                     break;
                 case 'num': case 'number':
@@ -116,15 +118,6 @@ if (Imported.DSI_Core.params.autoUpdate && Utils.isOptionValid("test")) {
     } catch(e) {
         console.warn("Can't not update DSI-Core!");
     }
-}
-
-// Assign Interpreter instance to commands args
-if (Utils.RPGMAKER_NAME === "MZ") {
-    Game_Interpreter.prototype.command357 = function(params) {
-        params[3].interpreter = this;
-        PluginManager.callCommand(this, params[0], params[1], params[3]);
-        return true;
-    };
 }
 
 // Parse SE
@@ -196,7 +189,6 @@ Bitmap.prototype.drawIcon = function(iconIndex, x, y) {
 };
 
 Easing.classes = [Sprite, Window];
-
 Easing.classes.forEach(className => {
     className.prototype.startTween = function(settings, duration, onFinishCallBack, easingFunction, repeat) {
         if (!easingFunction) {
