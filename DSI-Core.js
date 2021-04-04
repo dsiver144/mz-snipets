@@ -1,9 +1,9 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 16/03/2021
+// - Last updated   : 04/04/2021
 //================================================================
 /*:
- * @plugindesc v1.7 A helper plugin for DSI plugins.
+ * @plugindesc v1.8 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
@@ -30,7 +30,13 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.7;
+Imported.DSI_Core.version = 1.8;
+
+aS = function(bitmap) {
+    var sprite = new Sprite(bitmap);
+    SceneManager._scene.addChild(sprite);
+    return sprite;
+}
 
 // Update To Lastest Version.
 PluginManager.checkForNewVersion = function() {
@@ -190,6 +196,19 @@ Bitmap.prototype.drawIcon = function(iconIndex, x, y) {
 
 Easing.classes = [Sprite, Window];
 Easing.classes.forEach(className => {
+
+    className.prototype.readDotProperty = function(dotProperties) {
+        var result = null;
+        for (var i = 0; i < dotProperties.length - 1; i++) {
+            if (!result) {
+                result = this[dotProperties[i]];
+            } else {
+                result = result[dotProperties[i]];
+            }
+        }
+        return [result, dotProperties[dotProperties.length - 1]];
+    };
+
     className.prototype.startTween = function(settings, duration, onFinishCallBack, easingFunction, repeat) {
         if (!easingFunction) {
             easingFunction = Easing.easeLinear;
@@ -198,7 +217,16 @@ Easing.classes.forEach(className => {
         var tween = {}
         tween.properties = {}
         for (key in settings) {
-            tween.properties[key] = {beginValue: this[key], changeValue: (settings[key] - this[key])}
+            var dotProperties = key.split('.');
+            if (dotProperties.length > 1) {
+                var dotObj = this.readDotProperty(dotProperties);
+                const b = dotObj[0][dotObj[1]];
+                const c = settings[key] - b;
+                tween.properties[key] = {beginValue: b, changeValue: c};
+                tween.properties[key].dotObj = dotObj;
+            } else {
+                tween.properties[key] = {beginValue: this[key], changeValue: (settings[key] - this[key])}
+            }
         }
         tween.frameCount = 0;
         tween.duration = duration;
@@ -253,7 +281,12 @@ Easing.classes.forEach(className => {
                     var b = tween.properties[property].beginValue;
                     var c = tween.properties[property].changeValue;
                     var d = tween.duration;
-                    this[property] = tween.easingFunction(t, b, c, d);
+                    var dotObj = tween.properties[property].dotObj;
+                    if (dotObj) {
+                        dotObj[0][dotObj[1]] = tween.easingFunction(t, b, c, d);
+                    } else {
+                        this[property] = tween.easingFunction(t, b, c, d);
+                    }
                 }
                 tween.frameCount += 1;
             } else {
