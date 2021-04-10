@@ -1,9 +1,9 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 04/04/2021
+// - Last updated   : 04/11/2021
 //================================================================
 /*:
- * @plugindesc v1.8 A helper plugin for DSI plugins.
+ * @plugindesc v1.9 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
@@ -30,12 +30,22 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.8;
+Imported.DSI_Core.version = 1.9;
 
 aS = function(bitmap) {
     var sprite = new Sprite(bitmap);
+    sprite.followMouse(true);
     SceneManager._scene.addChild(sprite);
+    SceneManager._scene._lastSprite = sprite;
     return sprite;
+}
+
+lS = function() {
+    return SceneManager._scene._lastSprite;
+};
+
+gS = function() {
+    return SceneManager._scene;
 }
 
 // Update To Lastest Version.
@@ -197,6 +207,26 @@ Bitmap.prototype.drawIcon = function(iconIndex, x, y) {
 Easing.classes = [Sprite, Window];
 Easing.classes.forEach(className => {
 
+    className.prototype.followMouse = function(value) {
+        if (value === undefined) 
+            value = true;
+        this._followMouse = value;
+    };
+
+    className.allActiveInstances = [];
+
+	var DSI_Core_Sprite_initialize = className.prototype.initialize;
+    className.prototype.initialize = function() {
+		DSI_Core_Sprite_initialize.apply(this, arguments);
+        className.allActiveInstances.push(this);
+    };
+
+	var DSI_Core_Sprite_destroy = className.prototype.destroy;
+    className.prototype.destroy = function() {
+		DSI_Core_Sprite_destroy.call(this);
+        className.allActiveInstances.splice(className.allActiveInstances.indexOf(this), 1);
+    };
+
     className.prototype.readDotProperty = function(dotProperties) {
         var result = null;
         for (var i = 0; i < dotProperties.length - 1; i++) {
@@ -207,6 +237,35 @@ Easing.classes.forEach(className => {
             }
         }
         return [result, dotProperties[dotProperties.length - 1]];
+    };
+
+    className.prototype.popAnimation = function(scaleValueX, scaleValueY, duration, callback) {
+        var originScaleX = this.scale.x;
+        var originScaleY = this.scale.y;
+        var adjustAnchor = false;
+        var lastX = this.x;
+        var lastY = this.y;
+        if (this.anchor.x !== 0.5) {
+            this.anchor.x = 0.5;
+            this.anchor.y = 0.5;
+            this.x += this.width / 2;
+            this.y += this.height / 2;
+
+            adjustAnchor = true;
+        }
+        this.startTween({"scale.x": scaleValueX, "scale.y": scaleValueY}, duration / 2).onFinish(()=>{
+            this.startTween({"scale.x": originScaleX, "scale.y": originScaleY}, duration / 2).onFinish(()=>{
+                if (adjustAnchor) {
+                    this.anchor.x = 0.0;
+                    this.anchor.y = 0.0;
+                    this.x = lastX;
+                    this.y = lastY;
+                    this.scale.x = originScaleX;
+                    this.scale.y = originScaleY;
+                }
+                if (callback) callback();
+            });
+        });
     };
 
     className.prototype.startTween = function(settings, duration, onFinishCallBack, easingFunction, repeat) {
@@ -256,6 +315,10 @@ Easing.classes.forEach(className => {
         this._tweenObject = tween;
         return tween
     };
+
+    className.prototype.hasTween = function() {
+        return !!this._tweenObject;
+    };
     
     className.prototype.onUpdate = function(callback) {
         this._onUpdateCallback = callback.bind(this);
@@ -268,6 +331,14 @@ Easing.classes.forEach(className => {
     var DSI_SpriteTween_update = className.prototype.update;
     className.prototype.update = function() {
         DSI_SpriteTween_update.call(this);
+        if (this._followMouse) {
+            this.x = TouchInput.x;
+            this.y = TouchInput.y;
+            if (TouchInput.isCancelled() || Input.isTriggered('control')) {
+                this._followMouse = false;
+                console.log(this.x, this.y);
+            }
+        }
         if (this._onUpdateCallback) this._onUpdateCallback();
         if (this._tweenObject) {
             const tween = this._tweenObject;
@@ -290,13 +361,14 @@ Easing.classes.forEach(className => {
                 }
                 tween.frameCount += 1;
             } else {
-                if (tween.onFinishCallBack) tween.onFinishCallBack.call(this);
+                let callback = tween.onFinishCallBack;
                 if (tween.repeat) {
                     tween.frameCount = 0;
                 } else {
                     this._tweenObject = undefined;
                 }
-               
+                if (callback)
+                    callback();
             }
         }
     };
