@@ -1,9 +1,9 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 04/11/2021
+// - Last updated   : 04/25/2021
 //================================================================
 /*:
- * @plugindesc v1.9 A helper plugin for DSI plugins.
+ * @plugindesc v1.91 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
@@ -30,7 +30,28 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.9;
+Imported.DSI_Core.version = 1.91;
+
+DSI_CORE = {};
+
+DSI_CORE.parseArgs = function(types, args, defaultValues) {
+    var result = JSON.parse(JSON.stringify(args));
+    for (var i = 0; i < types.length; i++) {
+        const type = types[i];
+        switch(type) {
+            case 's':
+                result[i] = result[i] ? String(result[i]) : defaultValues[i];
+                break;
+            case 'i':
+                result[i] = result[i] ? parseInt(result[i]) : defaultValues[i];
+                break;
+            case 'f':
+                result[i] = result[i] ? parseInt(result[i]) : defaultValues[i];
+                break;
+        }
+    }
+    return result;
+}
 
 aS = function(bitmap) {
     var sprite = new Sprite(bitmap);
