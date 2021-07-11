@@ -1,9 +1,9 @@
 //================================================================
 // * Plugin Name    : DSI-Core
-// - Last updated   : 04/25/2021
+// - Last updated   : 11/07/2021
 //================================================================
 /*:
- * @plugindesc v1.91 A helper plugin for DSI plugins.
+ * @plugindesc v1.93 A helper plugin for DSI plugins.
  * @author dsiver144
  * 
  * @param showDevTool:bool
@@ -30,7 +30,7 @@
 var Imported = Imported || {};
 
 Imported.DSI_Core = {};
-Imported.DSI_Core.version = 1.91;
+Imported.DSI_Core.version = 1.93;
 
 DSI_CORE = {};
 
@@ -67,6 +67,25 @@ lS = function() {
 
 gS = function() {
     return SceneManager._scene;
+}
+
+getWindows = function(name, recursive) {
+    let scene = gS();
+    let result = {};
+    findWindows(result, scene, name, recursive);
+    console.log(result);
+}
+
+findWindows = function(result, target, name, recursive) {
+    for (k in target) {
+        if (target[k] instanceof Window_Base) {
+            result[name] = result[name] || {};
+            result[name][k] = target[k];
+            if (recursive) {
+                findWindows(result, target[k], k, false);
+            }
+        }
+    }
 }
 
 // Update To Lastest Version.
@@ -305,7 +324,23 @@ Easing.classes.forEach(className => {
                 tween.properties[key] = {beginValue: b, changeValue: c};
                 tween.properties[key].dotObj = dotObj;
             } else {
-                tween.properties[key] = {beginValue: this[key], changeValue: (settings[key] - this[key])}
+                let b = this[key];
+                let c = settings[key] - this[key];
+                if (key === 'offsetY') {
+                    let org = this['y'];
+                    this['y'] += settings[key];
+                    b = this['y'];
+                    c = org - b;
+                    key = 'y';
+                }
+                if (key === 'offsetX') {
+                    let org = this['x'];
+                    this['x'] += settings[key];
+                    b = this['x'];
+                    c = org - b;
+                    key = 'x';
+                }
+                tween.properties[key] = {beginValue: b, changeValue: c}
             }
         }
         tween.frameCount = 0;
